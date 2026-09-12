@@ -1,0 +1,42 @@
+#===============================================================================
+# @brief    Kconfig file.
+# Copyright (c) HiSilicon (Shanghai) Technologies Co., Ltd. 2024-2024. All rights reserved.
+#===============================================================================
+
+choice
+    prompt "Select SLE multi-anchor ranging role"
+    default SAMPLE_SUPPORT_SLE_MEASURE_DIS_SERVER
+    config SAMPLE_SUPPORT_SLE_MEASURE_DIS_SERVER
+        bool "Enable SLE MEASURE_DIS Anchor (Server) sample."
+    config SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT
+        bool "Enable SLE MEASURE_DIS Client/Collector sample."
+endchoice
+
+if SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT
+choice
+    prompt "Select SLE MEASURE_DIS client role"
+    default SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT_ROLE_RANGING
+    config SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT_ROLE_RANGING
+        bool "Ranging Client role"
+    config SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT_ROLE_COLLECTOR2
+        bool "Collector role"
+endchoice
+
+config SAMPLE_SUPPORT_SLE_MEASURE_DIS_COLLECTOR_IQ_PRINT
+    bool "Print Collector IQ data"
+    default n
+    depends on SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT_ROLE_COLLECTOR2
+    help
+        Print the existing Collector IQ records on the serial port.
+        Keep this disabled when serial output may affect ranging timing.
+
+config SAMPLE_SUPPORT_SLE_MEASURE_DIS_RANGING_CLIENT_ADDR_BYTE
+    int "Set SLE MEASURE_DIS ranging client address byte"
+    range 2 254
+    default 3
+    depends on SAMPLE_SUPPORT_SLE_MEASURE_DIS_CLIENT_ROLE_RANGING
+    help
+        Build each ranging client with a different value so multiple ranging clients
+        can connect to the same anchor at the same time. Value 4 is reserved for the
+        Collector and is rejected at compile time.
+endif

@@ -1,0 +1,17 @@
+NearLink UWB-Like Ranging & Positioning Suite
+Copyright 2026 Zhengyan Zhu
+
+This project contains code derived from or designed for use with the HiSilicon
+HiSpark BS2X SDK. Original copyright and license notices in source files must be
+retained. Those files remain subject to their respective upstream terms.
+
+Upstream project:
+https://gitee.com/HiSpark/fbb_bs2x
+
+This repository intentionally does not redistribute the complete vendor SDK,
+compiler toolchain, signing utilities, or third-party binary dependencies.
+
+"NearLink" and product names mentioned in this repository may be trademarks of
+their respective owners. Their use here is descriptive and does not imply
+endorsement.
+

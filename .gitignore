@@ -1,0 +1,51 @@
+# Firmware and native build outputs
+build/
+output/
+out/
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.obj
+*.a
+
+# Python environments, caches, and packages
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+*.egg-info/
+
+# Experimental data and generated exports
+data/
+captures/
+parsed/
+exports/
+*.log
+
+# IDE and local settings
+.vscode/
+.idea/
+*.user
+*.suo
+*.code-workspace
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Temporary and operating-system files
+*.tmp
+*.temp
+*.bak
+*.swp
+~$*
+.DS_Store
+Thumbs.db
+desktop.ini
