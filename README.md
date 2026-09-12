@@ -1,5 +1,7 @@
 # NearLink UWB-Like Ranging & Positioning Suite
 
+<p align="right"><a href="README_EN.md">English</a> | 简体中文</p>
+
 基于星闪（NearLink）SLE Channel Sounding 的多锚点测距、双向 IQ 采集、定位与链路感知研究套件。
 
 > [!IMPORTANT]
@@ -105,7 +107,7 @@ nearlink-uwb-like-ranging/
 
 ## 当前边界
 
-- 固件实测中 4 个 Anchor 较稳定；连接第 5 个时曾观察到间歇性中断，因此默认配置为 4，但不限制 Anchor 数量。
+- 固件实测中 4 个 Anchor 较稳定；连接第 5 个时曾观察到间歇性中断，因此默认配置为 4，但上位机不限制 Anchor 数量。
 - Ranging Client 不持续打印 IQ，避免大量串口输出阻塞系统；IQ 输出由 Collector 的编译选项控制。
 - 当前协议使用十六进制文本分片，优先保证串口调试和日志可读性，并非带宽最优方案。
 - 链路评分和热图是研究特征，不应直接视为经过认证的人员检测结果。
