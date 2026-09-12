@@ -15,16 +15,9 @@
 | `host` | 串口接收、多 Client 距离监控、2D/3D 定位、IQ/CFR/MUSIC 分析、链路感知与数据集导出 |
 | `docs` | SDK 接入和系统架构说明 |
 
-```text
-Anchor(s) <── SLE Channel Sounding ──> Ranging Client
-    │                                      │
-    └──────────── SLE data ────────────────┤
-                                           ▼
-                                      Collector
-                                           │ serial
-                                           ▼
-                                      Research GUI
-```
+<p align="center">
+  <img src="docs/assets/system-topology.png" alt="Anchor、Ranging Client、Collector 与上位机之间的系统链路" width="760">
+</p>
 
 Collector 不参与信道探测，只负责汇集并输出实验数据，从而降低 Ranging Client 的处理与串口压力。更完整的数据流见 [系统架构](docs/ARCHITECTURE.md)。
 
@@ -40,6 +33,14 @@ Collector 不参与信道探测，只负责汇集并输出实验数据，从而�
 - 提供遮挡、动态、可靠性三类链路评分与活动感知热图；
 - 提供面向研究的数据标签、采集进度和 Raw/Feature/Temporal 数据集导出。
 
+## 软件界面
+
+| 多锚点实时定位 | 链路感知与空间热图 |
+| --- | --- |
+| [![2D/3D 定位、距离趋势和动态 Anchor 配置](docs/assets/gui-positioning.png)](docs/assets/gui-positioning.png) | [![遮挡、动态、可靠性评分和链路活动热图](docs/assets/gui-sensing.png)](docs/assets/gui-sensing.png) |
+
+点击图片可查看完整界面。
+
 ## 硬件与实测环境
 
 - 开发板：BearPi-Pico H2821E；
@@ -48,6 +49,13 @@ Collector 不参与信道探测，只负责汇集并输出实验数据，从而�
 - 实测结果：沿用 SDK 原始校准量时，测距距离可超过 100 米。
 
 以上结果来自特定硬件、天线布置和射频环境，不代表所有组合均可达到相同距离。天线安装、遮挡、干扰、Anchor 几何和校准都会影响结果。
+
+<p align="center">
+  <img src="docs/assets/anchor-deployment.jpg" alt="多 Anchor 室内实验布置" width="60%">
+  <img src="docs/assets/handheld-terminal.jpg" alt="BearPi-Pico H2821E 手持终端" width="25%">
+</p>
+
+<p align="center"><em>多 Anchor 实验布置与基于 BearPi-Pico H2821E 的手持终端</em></p>
 
 ## 实测演示
 
