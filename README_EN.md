@@ -2,55 +2,87 @@
 
 <p align="right">English | <a href="README.md">简体中文</a></p>
 
-An end-to-end research suite for multi-anchor ranging, bidirectional IQ collection, positioning, and link sensing using NearLink SLE Channel Sounding.
+**A research platform for multi-anchor ranging, bidirectional IQ acquisition, positioning, and link sensing using NearLink SLE Channel Sounding.**
 
-> [!IMPORTANT]
-> “UWB-Like” describes the multi-anchor ranging and positioning experience. This project uses **NearLink SLE Channel Sounding**. It is not a UWB implementation and does not implement the UWB protocol.
+<p align="center">
+  <a href="docs/assets/gui-positioning.png"><img src="docs/assets/gui-positioning.png" alt="NearLink real-time multi-anchor positioning interface" width="900"></a>
+</p>
 
-## Overview
+| Validated setup | Raw observations | Positioning and sensing | LOS test range |
+| --- | --- | --- | --- |
+| **4 Anchors + multi-client support** | **Bidirectional IQ / RSSI / ToF** | **2D / 3D / CFR / MUSIC / link scores** | **>100 m** |
 
-This repository provides a reproducible experimental pipeline. The embedded devices handle ranging and IQ aggregation, while the desktop application handles acquisition, positioning, signal analysis, link sensing, labeling, and dataset export.
+> **Why “UWB-Like”?** The term refers to the usage model—multi-anchor ranging, raw channel observations, and positioning. The underlying radio technology is **NearLink SLE Channel Sounding**, not UWB, and this project does not implement the UWB PHY or protocol.
 
-| Module | Capabilities |
-| --- | --- |
-| `firmware/sle_measure_dis` | Anchor, Ranging Client, and Collector firmware; multi-anchor ranging and bidirectional IQ acquisition |
-| `host` | Serial ingestion, multi-client distance monitoring, 2D/3D positioning, IQ/CFR/MUSIC analysis, link sensing, and dataset export |
-| `docs` | SDK integration and system architecture documentation |
+▶ **[Watch the field test on Bilibili](https://www.bilibili.com/video/BV11wYQ6BEQ1/)**
+
+## Why This Project?
+
+The HiSpark/BS2X SDK provides SLE Channel Sounding and a ranging-algorithm interface. Turning an individual ranging link into a research platform, however, still requires multi-node connection management, client identities, bidirectional IQ aggregation, data transport, positioning, visualization, and experiment labeling.
+
+This project asks:
+
+> **How can a communication-oriented Channel Sounding capability be extended into a reproducible multi-node ranging, positioning, and wireless-sensing platform?**
+
+The resulting design separates ranging nodes from the data output path through a dedicated Collector and connects embedded link management and bidirectional IQ transport to host-side positioning, channel analysis, and research dataset generation.
+
+## What I Built
+
+Built on the HiSpark/BS2X SLE ranging sample and SDK-provided ranging interface, this project adds the following components.
+
+### Embedded & Protocol
+
+- Organized Anchor, Ranging Client, and Collector roles into a multi-node experimental topology.
+- Implemented multi-Anchor connection state and per-link Channel Sounding startup flows.
+- Added configurable device identities for distinguishing multiple Ranging Clients.
+- Stored Anchor-side and Client-side IQ per connection and associated observations from the same measurement by timestamp.
+- Defined Collector transport, fragmentation, and serial output formats for ranging metadata and bidirectional IQ.
+- Confined high-volume IQ logging to the Collector so that serial output does not block the Ranging Client.
+
+### Host, Positioning & Sensing
+
+- Implemented streaming parsing of the current Collector protocol, IQ fragment reassembly, and bidirectional pairing.
+- Added dynamic Anchor configuration, per-client state, and distance-trend visualization.
+- Implemented 2D/3D multilateration using ULS followed by one Gauss–Newton refinement step, with optional Kalman smoothing.
+- Built IQ, CFR, phase, and MUSIC multipath analysis pipelines.
+- Built blockage, dynamic-disturbance, and link-reliability scores with spatial heatmaps.
+- Added scene labels, reference distances, sample groups, progress tracking, and Raw/Feature/Temporal dataset exports.
+
+### System Engineering
+
+- Completed the `Embedded → Protocol → Collector → Host → Positioning/Sensing` pipeline.
+- Built, flashed, and tested all three roles on BearPi-Pico H2821E boards.
+- Established four Anchors as the current stable setup while retaining multi-client identities and dynamic host-side Anchor configuration.
+- Preserved low-level observations for subsequent NLOS, channel-variation, and positioning research.
+
+## System Architecture
 
 <p align="center">
   <img src="docs/assets/system-topology.png" alt="System links among Anchors, Ranging Clients, the Collector, and the host application" width="760">
 </p>
 
-The Collector does not perform Channel Sounding. It aggregates experimental data and sends it over the serial port, reducing processing and logging pressure on the Ranging Client. See [System Architecture](docs/ARCHITECTURE.md) for the complete data flow.
+| Role | Responsibility | Channel Sounding |
+| --- | --- | --- |
+| Anchor / Server | Responds to ranging, provides Anchor-side IQ, and produces the SDK distance result | Yes |
+| Ranging Client | Connects to multiple Anchors, starts per-link ranging, and uploads Client-side IQ | Yes |
+| Collector | Aggregates distance, RSSI, ToF, timestamps, and bidirectional IQ, then outputs them over serial | No |
+| Research GUI | Parses data, positions clients, analyzes the channel, senses link activity, labels samples, and exports datasets | N/A |
 
-## Highlights
+The Collector does not participate in Channel Sounding. It provides a dedicated aggregation and output path, reducing processing and logging pressure on the Ranging Client. See [System Architecture](docs/ARCHITECTURE.md) for the full data flow.
 
-- A Ranging Client can connect to multiple Anchors; the current firmware defaults to four.
-- Multiple Ranging Clients are supported and identified by configurable device addresses.
-- IQ data is collected at both the Ranging Client and Anchor sides.
-- The Collector aggregates distance, RSSI, ToF, timestamps, and bidirectional IQ data.
-- The number of Anchors in the desktop application is configurable, with four shown by default.
-- 2D/3D positioning, trajectory visualization, and optional Kalman position smoothing.
-- Bidirectional IQ pairing, CFR and phase analysis, and MUSIC multipath metrics.
-- Link-level blockage, dynamic disturbance, and reliability scores with activity heatmaps.
-- Research-oriented labels, collection progress tracking, and Raw/Feature/Temporal dataset exports.
+## Experimental Results
 
-## Application Screenshots
-
-| Real-time multi-anchor positioning | Link sensing and spatial heatmap |
+| Item | Current result |
 | --- | --- |
-| [![2D/3D positioning, distance trends, and dynamic Anchor configuration](docs/assets/gui-positioning.png)](docs/assets/gui-positioning.png) | [![Blockage, dynamic disturbance, reliability scores, and link activity heatmap](docs/assets/gui-sensing.png)](docs/assets/gui-sensing.png) |
+| Development board | BearPi-Pico H2821E |
+| Stable Anchor connections | **4**; intermittent connectivity was observed with a fifth Anchor |
+| Multi-client support | Configurable Ranging Client identities with independent host-side state |
+| Observed update rate | Approximately **2 Hz per link** with the current parameters; about eight link results per second across four Anchors |
+| Raw observations | Bidirectional Anchor/Client IQ, RSSI, ToF, and timestamps |
+| Positioning | Real-time 2D/3D multilateration and trajectory visualization |
+| LOS range | **>100 m** outdoors with unobstructed line of sight, external 3 dBi whip antennas, and the original SDK calibration values |
 
-Click either image to view the full interface.
-
-## Hardware and Field Tests
-
-- Board: BearPi-Pico H2821E
-- Antenna: external 3 dBi whip antenna instead of the onboard PCB antenna
-- Environment: open, unobstructed line of sight
-- Observed result: more than 100 meters of ranging distance while retaining the original SDK calibration values
-
-These results were obtained with a specific board, antenna arrangement, and RF environment. They do not guarantee the same range with every hardware setup. Antenna placement, interference, obstruction, Anchor geometry, and calibration can all affect the results.
+These are experimental observations from a specific board, antenna arrangement, SDK configuration, and RF environment. They do not guarantee the same range or update rate for other setups. A systematic positioning-accuracy benchmark has not yet been published.
 
 <p align="center">
   <img src="docs/assets/anchor-deployment.jpg" alt="Indoor multi-Anchor experimental deployment" width="60%">
@@ -59,52 +91,54 @@ These results were obtained with a specific board, antenna arrangement, and RF e
 
 <p align="center"><em>Multi-Anchor experimental deployment and BearPi-Pico H2821E handheld terminals</em></p>
 
-## Field-Test Video
+## Technical Boundary
 
-▶ **[Watch the NearLink UWB-Like Ranging field test on Bilibili](https://www.bilibili.com/video/BV11wYQ6BEQ1/)**
+### Division of responsibility between the SDK and this project
 
-The video demonstrates the project in a real test environment. The hardware and RF conditions are described in the previous section.
+The SDK provides the SLE protocol stack, Channel Sounding callbacks, and the `slem_alg_calc_smoothed_dis(...)` ranging interface. The firmware supplies the SDK algorithm with bidirectional IQ, RSSI, and ToF observations from the same measurement and uses its distance output.
 
-## Getting Started
+This project does not claim to reimplement the vendor's low-level ranging algorithm. Its contributions are multi-node connection and state orchestration, bidirectional observation aggregation, the Collector data path, host-side positioning from SDK distance results, and IQ-based research analysis.
+
+### IQ frequency mapping
+
+The current host research pipeline maps the first 79 IQ points to 2402–2480 MHz for CFR, phase, and MUSIC feature extraction. This is the current analysis configuration and should be validated against the exact SDK Channel Sounding configuration before being treated as a fixed protocol guarantee.
+
+### NearLink SLE and UWB
+
+“UWB-Like” describes the system workflow, not waveform equivalence. The goal is not to replace UWB, but to explore the ranging, positioning, and sensing capabilities available from NearLink SLE Channel Sounding, network design, and the associated signal-processing pipeline.
+
+## Software Interface
+
+| Real-time multi-anchor positioning | Link sensing and spatial heatmap |
+| --- | --- |
+| [![2D/3D positioning, distance trends, and dynamic Anchor configuration](docs/assets/gui-positioning.png)](docs/assets/gui-positioning.png) | [![Blockage, dynamic disturbance, reliability scores, and link activity heatmap](docs/assets/gui-sensing.png)](docs/assets/gui-sensing.png) |
+
+The application also provides dedicated IQ-analysis and research-data-collection pages. See the [Host Application Guide](host/README.md) for operation and data-format details.
+
+## Quick Start
 
 ### 1. Integrate the firmware
 
-Prepare a HiSpark/BS2X SDK and build environment compatible with the BearPi-Pico H2821E, then follow the [SDK Integration Guide](docs/SDK_INTEGRATION.md) to install the sample and configure its three roles.
+Prepare a HiSpark/BS2X SDK and build environment compatible with the BearPi-Pico H2821E, then follow the [SDK Integration Guide](docs/SDK_INTEGRATION.md) to add the sample and configure its three roles separately.
 
 - [Firmware Guide](firmware/sle_measure_dis/README.md)
 - [Collector Serial and IQ Protocol](firmware/sle_measure_dis/PROTOCOL.md)
 
-This repository intentionally excludes the complete vendor SDK, compiler, signing tools, and proprietary binary dependencies.
+This repository intentionally excludes the complete SDK, compiler, signing tools, and vendor binary dependencies.
 
 ### 2. Run the host application
 
 Python 3.10 or 3.11 is recommended.
 
-```bash
+```powershell
 cd host
 python -m venv .venv
-```
-
-Activate the environment on Windows:
-
-```powershell
 .venv\Scripts\activate
-```
-
-Or on Linux/macOS:
-
-```bash
-source .venv/bin/activate
-```
-
-Install the dependencies and launch the application:
-
-```bash
 python -m pip install -r requirements.txt
 python run_gui.py
 ```
 
-See the [Host Application Guide](host/README.md) for the interface, data format, and operating instructions.
+Use simulated data to explore the interface without hardware, or connect to a Collector serial port for live measurements.
 
 ## Repository Layout
 
@@ -115,30 +149,44 @@ nearlink-uwb-like-ranging/
 ├── host/                  # Complete desktop research application
 │   ├── gui/               # User interface, plotting, and research services
 │   ├── tests/             # Parser, export, and dynamic-Anchor regression tests
-│   ├── algorithm.py       # 2D/3D positioning algorithms
+│   ├── algorithm.py       # ULS + one-step Gauss–Newton positioning
 │   ├── parse_iq_raw.py    # Collector log and IQ decoder
 │   └── run_gui.py         # Application entry point
 └── docs/                  # System and SDK documentation
 ```
 
-## Current Limitations
+## Development Status
 
-- Four Anchors were comparatively stable in hardware tests. Intermittent connectivity was observed with a fifth Anchor, so the firmware defaults to four. The host application does not impose this Anchor-count limit.
-- The Ranging Client does not continuously print IQ data because heavy serial logging can block the system. IQ output is controlled by a Collector firmware build option.
-- The current protocol uses hexadecimal text fragments for readability and serial debugging rather than maximum bandwidth efficiency.
-- Link scores and heatmaps are research features and should not be treated as certified human-presence detection results.
+### Phase 1 — End-to-End Prototype ✅
 
-## Roadmap
-
-- [x] Multi-Anchor and multi-Ranging-Client measurements
-- [x] Bidirectional IQ acquisition and Collector aggregation
+- [x] Multi-Anchor and multi-Ranging-Client measurement pipeline
+- [x] Bidirectional IQ acquisition and dedicated Collector
 - [x] 2D/3D positioning and real-time visualization
 - [x] IQ/CFR/MUSIC analysis
-- [x] Link activity and blockage sensing
+- [x] Link activity, blockage sensing, and heatmaps
 - [x] Research data labeling and export
-- [ ] Versioned binary transport with payload lengths and CRC protection
-- [ ] Systematic evaluation across additional environments and antenna configurations
 
-## License
+### Phase 2 — Reproducibility & Evaluation
 
-New code in this repository is licensed under the [Apache License 2.0](LICENSE). Files derived from or modified from the upstream SDK retain their original copyright and license notices; see [NOTICE](NOTICE). Users remain responsible for complying with the licenses of the SDK, toolchain, and third-party dependencies.
+- [ ] Pin and document the validated SDK and IDE versions
+- [ ] Publish sanitized sample data and a hardware-free demonstration workflow
+- [ ] Add quantitative tests across environments, motion states, and NLOS conditions
+- [ ] Add continuous integration for the host application
+
+### Phase 3 — Protocol & Performance Optimization
+
+- [ ] Introduce a versioned binary protocol with lengths, sample identifiers, and CRC protection
+- [ ] Evaluate serial bandwidth and fragment loss at higher sampling rates
+- [ ] Investigate connection stability with a fifth and additional Anchors
+
+## Current Limitations
+
+- The firmware defaults to four Anchors. The host can add or remove Anchors dynamically, but this does not mean that arbitrary firmware-side Anchor counts have been validated.
+- The hexadecimal text-fragment protocol prioritizes serial debugging and readable logs rather than bandwidth efficiency.
+- High-volume serial IQ output can block the embedded system. The Ranging Client therefore does not continuously print IQ, and a Collector build option controls IQ output.
+- Link scores and heatmaps are research features and should not be treated as certified human-presence detection results.
+- Positioning, blockage, and dynamic-sensing performance still require systematic cross-environment validation.
+
+## License & Acknowledgements
+
+New code in this repository is licensed under the [Apache License 2.0](LICENSE). The project is built on SLE samples and interfaces from the HiSpark/BS2X SDK. Files derived from or modified from the upstream SDK retain their original copyright and license notices; see [NOTICE](NOTICE). Users remain responsible for complying with the licenses of the SDK, toolchain, and third-party dependencies.
